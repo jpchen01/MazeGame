@@ -287,23 +287,13 @@
          </property>
         </widget>
        </item>
-       <item row="0" column="1">
-        <widget class="QPushButton" name="button_forwards">
+       <item row="1" column="2">
+        <widget class="QPushButton" name="button_right">
          <property name="text">
-          <string>Forwards (w)</string>
+          <string>Right (d)</string>
          </property>
          <property name="shortcut">
-          <string>W</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="1">
-        <widget class="QPushButton" name="button_backwards">
-         <property name="text">
-          <string>Backwards (s)</string>
-         </property>
-         <property name="shortcut">
-          <string>S</string>
+          <string>D</string>
          </property>
         </widget>
        </item>
@@ -317,6 +307,16 @@
          </property>
         </widget>
        </item>
+       <item row="1" column="1">
+        <widget class="QPushButton" name="button_backwards">
+         <property name="text">
+          <string>Backwards (s)</string>
+         </property>
+         <property name="shortcut">
+          <string>S</string>
+         </property>
+        </widget>
+       </item>
        <item row="0" column="2">
         <widget class="QPushButton" name="button_up">
          <property name="text">
@@ -327,13 +327,27 @@
          </property>
         </widget>
        </item>
-       <item row="1" column="2">
-        <widget class="QPushButton" name="button_right">
+       <item row="0" column="1">
+        <widget class="QPushButton" name="button_forwards">
          <property name="text">
-          <string>Right (d)</string>
+          <string>Forwards (w)</string>
          </property>
          <property name="shortcut">
-          <string>D</string>
+          <string>W</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="3">
+        <widget class="QPushButton" name="button_turn_left">
+         <property name="text">
+          <string>Turn Left (&lt;)</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="3">
+        <widget class="QPushButton" name="button_turn_right">
+         <property name="text">
+          <string>Turn Right (&gt;)</string>
          </property>
         </widget>
        </item>
@@ -358,7 +372,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QLabel" name="button_coordinates">
+        <widget class="QLabel" name="label_coordinates">
          <property name="font">
           <font>
            <family>Georgia</family>
@@ -367,6 +381,22 @@
          </property>
          <property name="text">
           <string>(X,Y,Z): (0, 0, 0)</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_direction">
+         <property name="font">
+          <font>
+           <family>Georgia</family>
+           <pointsize>16</pointsize>
+          </font>
+         </property>
+         <property name="text">
+          <string>Direction: North</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignCenter</set>
