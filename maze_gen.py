@@ -12,17 +12,17 @@ class MazeGen(QtWidgets.QWidget):
     # direction coordinates of (left, forwards) relative to matrix respectively
     direction_dict = {'North': ((0, 0, -1), (0, -1, 0), (0, 0, 1)),
                       'South': ((0, 0, 1), (0, -1, 0), (0, 0, -1)),
-                      'East': ((0, 0, -1), (0, 1, 0), (0, 0, 1)),
-                      'West': ((0, 0, 1), (0, -1, 0), (0, 0, -1))}
+                      'East': ((0, -1, 0), (0, 0, 1), (0, -1, 0)),
+                      'West': ((0, 1, 0), (0, 0, -1), (0, 1, 0))}
     temp_maze = np.array([[[0, 1, 0, 0, 0],
                            [0, 1, 0, 0, 0],
-                           [0, 2, 1, 1, 1],
-                           [0, 1, 1, 1, 0],
+                           [0, 0, 1, 1, 1],
+                           [0, 1, 0, 1, 0],
                            [0, 0, 0, 0, 0]],
                           [[0, 0, 0, 0, 0],
-                           [0, 1, 0, 1, 0],
-                           [0, 1, 0, 1, 0],
-                           [0, 1, 1, 1, 0],
+                           [0, 0, 1, 1, 0],
+                           [0, 1, 2, 0, 0],
+                           [1, 1, 1, 1, 0],
                            [0, 0, 0, 0, 0]],
                           [[0, 0, 0, 0, 0],
                            [0, 0, 0, 0, 0],
@@ -46,9 +46,9 @@ class MazeGen(QtWidgets.QWidget):
         # Set up the game
         self.maze = self.generate_maze(length, width, height)
         self.current_position = self.get_start_position()
-        self.current_direction = 'North'
+        self.current_direction = 'West'
         self.update_visual()
-        self.show()  # Displays the GUI
+        # self.show()  # Displays the GUI
 
     def get_start_position(self):
         """Finds the starting position of the maze.
@@ -62,7 +62,21 @@ class MazeGen(QtWidgets.QWidget):
         return pos_tuple[0][0], pos_tuple[1][0], pos_tuple[2][0]
 
     def setup_ui(self):
-        # Connects movement buttons to strings for easier processing
+        """Creates both static dictionaries that are dependent on the .ui file
+        that does not exist before the uic.LoadUi() method is called.
+
+        self.buttons_dict : dictionary
+            Links buttons to strings that can be passed as function parameters.
+
+        self.image_strings : dictionary
+            Stores path to image files, with the key being the position the
+            image corresponds to in the array of labels used to display show
+            the pictures (self.image_grid).
+
+        self.image_grid : tuple
+            Tuple of tuples to store the 3x3 coordinates of the Qt widgets used
+            to present the image.
+        """
         self.buttons_dict = {self.button_down: 'down',
                              self.button_forwards: 'forwards',
                              self.button_up: 'up',
@@ -89,12 +103,45 @@ class MazeGen(QtWidgets.QWidget):
                            (self.image_31, self.image_32, self.image_33))
 
     def generate_maze(self, length, width, height):
+        """Magically creates a maze, though I might not have time to finish,
+        so it temporarily returns a hard coded one for testing.
+
+        Parameters
+        ----------
+        length : int
+            Length of the maze
+        width : int
+            Width of the maze
+        height : int
+            Height of the maze
+
+        Returns
+        -------
+        numpy.array
+            A 3D matrix representing the maze, refer to self.maze_dict for
+            what each value represents
+        """
         return self.temp_maze
 
     def update_position(self):
         pass
 
     def update_visual(self):
+        """Is called every time the player makes a valid movement.
+        The function holds 2 dictionaries and a local function and uses them to
+        present the player with an accurate representation of the matrix in
+        a first person perspective.
+
+        rel_coord
+            It uses the current direction to determine what the matrix looks
+            like in a first person view and stores it in a dictionary with
+            the relative directions as keys
+
+        image_pos
+            A dictionary using the same key values as rel_coord that stores the
+            positions of the labels/images in self.image_grid that need to be
+            modified depending on the direction.
+        """
 
         rel_coord = dict(left=self.direction_dict[self.current_direction][0],
                          forward=self.direction_dict[self.current_direction][
@@ -105,7 +152,23 @@ class MazeGen(QtWidgets.QWidget):
                          down=(2, 1))
 
         def update_directional_view(relative_direction):
-            new_coord = rel_coord[relative_direction] + self.current_position
+            """Update the image in the specified relative direction. It works
+            by finding the coordinate of the square in the relative direction
+            and check for the value, if it's value is equal to 1 and not out of
+            bounds, it will display an open square, or it will display a wall.
+
+            Parameters
+            ----------
+            relative_direction : string
+                It takes the string keys of the two dictionaries which specify
+                one of five relative directions that the function needs to
+                change the image for. Valid inputs are up, left, forward,
+                right, down as strings.
+            """
+
+            new_coord = np.add(rel_coord[relative_direction],
+                               self.current_position)
+
             row = image_pos[relative_direction][0]
             col = image_pos[relative_direction][1]
 
@@ -122,16 +185,17 @@ class MazeGen(QtWidgets.QWidget):
             update_directional_view(direction)
 
 
-
-
-
 def run_game():
+    """Creates a version of the game object to start the ui, does a check to
+    see if there's already an instance so it doesn't crash the Jupyter
+    Notebook kernel if a cell is rerun.
+    """
     app = QtCore.QCoreApplication.instance()
     if app is None:
         app = QtWidgets.QApplication(sys.argv)
     window = MazeGen(5, 5, 3)
     window.show()
-    # window.image_grid[1][1].setPixmap()
+    print(window.current_position)
     app.exec_()
 
 
