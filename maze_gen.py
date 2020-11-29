@@ -3,6 +3,7 @@ import sys
 import numpy as np
 from PyQt5 import QtWidgets, uic, QtCore
 from PyQt5.QtGui import QPixmap
+from functools import partial
 
 
 class MazeGen(QtWidgets.QWidget):
@@ -11,26 +12,27 @@ class MazeGen(QtWidgets.QWidget):
     maze_dict = {'wall': 0, 'open': 1, 'start': 2, 'end': 3}
     # direction coordinates of (left, forwards) relative to matrix respectively
     direction_dict = {'North': ((0, 0, -1), (0, -1, 0), (0, 0, 1)),
-                      'South': ((0, 0, 1), (0, -1, 0), (0, 0, -1)),
                       'East': ((0, -1, 0), (0, 0, 1), (0, -1, 0)),
+                      'South': ((0, 0, 1), (0, -1, 0), (0, 0, -1)),
                       'West': ((0, 1, 0), (0, 0, -1), (0, 1, 0))}
     temp_maze = np.array([[[0, 1, 0, 0, 0],
                            [0, 1, 0, 0, 0],
                            [0, 0, 1, 1, 1],
-                           [0, 1, 0, 1, 0],
+                           [0, 1, 1, 1, 0],
                            [0, 0, 0, 0, 0]],
                           [[0, 0, 0, 0, 0],
                            [0, 0, 1, 1, 0],
-                           [0, 1, 2, 0, 0],
+                           [0, 1, 1, 0, 0],
                            [1, 1, 1, 1, 0],
                            [0, 0, 0, 0, 0]],
                           [[0, 0, 0, 0, 0],
-                           [0, 0, 0, 0, 0],
-                           [0, 0, 0, 0, 0],
+                           [0, 0, 1, 0, 0],
+                           [0, 1, 2, 1, 0],
                            [0, 1, 1, 1, 3],
                            [0, 0, 0, 0, 0]]])
 
     def __init__(self, length, width, height):
+
         # Set up GUI portion of the code
         super(MazeGen, self).__init__()
         uic.loadUi('maze_gui.ui', self)  # Adds widgets to class instance
@@ -38,12 +40,14 @@ class MazeGen(QtWidgets.QWidget):
         self.image_grid = ()
         self.image_strings = {}
         self.setup_ui()  # Populates above data structures.
+        self.steps = 0
 
         # Connect GUI buttons to functions using signal/slot system
         for button in self.buttons_dict:
-            button.clicked.connect(self.update_position)
+            button.clicked.connect(partial(self.update_position, button))
 
         # Set up the game
+        self.dimension = (height, length, width)
         self.maze = self.generate_maze(length, width, height)
         self.current_position = self.get_start_position()
         self.current_direction = 'West'
@@ -78,10 +82,10 @@ class MazeGen(QtWidgets.QWidget):
             to present the image.
         """
         self.buttons_dict = {self.button_down: 'down',
-                             self.button_forwards: 'forwards',
+                             self.button_forwards: 'forward',
                              self.button_up: 'up',
                              self.button_left: 'left',
-                             self.button_backwards: 'backwards',
+                             self.button_backwards: 'backward',
                              self.button_right: 'right',
                              self.button_turn_left: 'turn_left',
                              self.button_turn_right: 'turn_right'}
@@ -123,8 +127,53 @@ class MazeGen(QtWidgets.QWidget):
         """
         return self.temp_maze
 
-    def update_position(self):
-        pass
+    def update_position(self, button):
+        """A socket for the buttons that runs whenever a button is pressed.
+        If the button is a turning one, just change the self.current_direction
+        variable. If the button is a directional movement button, then it will
+        attempt to move in that direction. Update visuals after it's complete.
+
+        Parameters
+        ----------
+        button : QPushButton
+            Connects the specified button to the function and does movement
+            depending on the button.
+        """
+
+        def check_relative_position(relative_direction):
+            rel_coord = dict(
+                left=self.direction_dict[self.current_direction][0],
+                forward=self.direction_dict[self.current_direction][
+                    1],
+                right=self.direction_dict[self.current_direction][2],
+                up=(1, 0, 0), down=(-1, 0, 0))
+
+            rel_coord['backward'] = [-coord for coord in rel_coord['forward']]
+            new_coord = np.add(rel_coord[relative_direction],
+                               self.current_position)
+
+            check_lower_bound = all(coord > 0 for coord in new_coord)
+            check_upper_bound = all(new_coord < self.dimension)
+
+            if check_lower_bound and check_upper_bound and self.maze[
+                    new_coord[0], new_coord[1], new_coord[2]] != 0:
+                self.current_position = new_coord
+
+        if self.buttons_dict[button] in ['turn_left', 'turn_right']:
+            cardinal_directions = list(self.direction_dict.keys())
+            direction_index = cardinal_directions.index(self.current_direction)
+            if self.buttons_dict[button] == 'turn_left':
+                self.current_direction = cardinal_directions[
+                    direction_index - 1]
+            else:
+                cardinal_directions.append(cardinal_directions.pop(0))
+                self.current_direction = cardinal_directions[direction_index]
+
+        else:
+            check_relative_position(self.buttons_dict[button])
+
+        self.steps += 1
+        self.update_visual()
 
     def update_visual(self):
         """Is called every time the player makes a valid movement.
@@ -135,7 +184,8 @@ class MazeGen(QtWidgets.QWidget):
         rel_coord
             It uses the current direction to determine what the matrix looks
             like in a first person view and stores it in a dictionary with
-            the relative directions as keys
+            the relative directions as keys. Also it upates the players with
+            some numbers/statistics.
 
         image_pos
             A dictionary using the same key values as rel_coord that stores the
@@ -172,17 +222,23 @@ class MazeGen(QtWidgets.QWidget):
             row = image_pos[relative_direction][0]
             col = image_pos[relative_direction][1]
 
-            if self.maze[new_coord[0], new_coord[1], new_coord[2]] != 0 \
-                    and not any(coord < 0 for coord in new_coord):
-
+            check_lower_bound = all(coord > 0 for coord in new_coord)
+            check_upper_bound = all(new_coord < self.dimension)
+            if check_lower_bound and check_upper_bound and self.maze[
+                    new_coord[0], new_coord[1], new_coord[2]] != 0:
                 self.image_grid[row][col].setPixmap(QPixmap(
-                                   self.image_strings[str(row) + str(col)][0]))
+                    self.image_strings[str(row) + str(col)][0]))
             else:
                 self.image_grid[row][col].setPixmap(QPixmap(
-                                   self.image_strings[str(row) + str(col)][1]))
+                    self.image_strings[str(row) + str(col)][1]))
 
         for direction in image_pos:
             update_directional_view(direction)
+
+        self.label_steps.setText('Steps: ' + str(self.steps))
+        self.label_coordinates.setText('(X,Y,Z):' + str(self.current_position))
+        self.label_direction.setText('Direction: '
+                                     + str(self.current_direction))
 
 
 def run_game():
