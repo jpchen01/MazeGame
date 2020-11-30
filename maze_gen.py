@@ -12,24 +12,24 @@ class MazeGen(QtWidgets.QWidget):
     maze_dict = {'wall': 0, 'open': 1, 'start': 2, 'end': 3}
     # direction coordinates of (left, forwards) relative to matrix respectively
     direction_dict = {'North': ((0, 0, -1), (0, -1, 0), (0, 0, 1)),
-                      'East': ((0, -1, 0), (0, 0, 1), (0, -1, 0)),
-                      'South': ((0, 0, 1), (0, -1, 0), (0, 0, -1)),
-                      'West': ((0, 1, 0), (0, 0, -1), (0, 1, 0))}
-    temp_maze = np.array([[[0, 1, 0, 0, 0],
-                           [0, 1, 0, 0, 0],
-                           [0, 0, 1, 1, 1],
-                           [0, 1, 1, 1, 0],
+                      'East': ((0, -1, 0), (0, 0, 1), (0, 1, 0)),
+                      'South': ((0, 0, 1), (0, 1, 0), (0, 0, -1)),
+                      'West': ((0, 1, 0), (0, 0, -1), (0, -1, 0))}
+    temp_maze = np.array([[[2, 1, 1, 0, 0],
+                           [0, 0, 0, 0, 0],
+                           [0, 0, 0, 0, 0],
+                           [0, 0, 0, 0, 0],
                            [0, 0, 0, 0, 0]],
-                          [[0, 0, 0, 0, 0],
-                           [0, 0, 1, 1, 0],
-                           [0, 1, 1, 0, 0],
-                           [1, 1, 1, 1, 0],
-                           [0, 0, 0, 0, 0]],
-                          [[0, 0, 0, 0, 0],
+                          [[0, 0, 1, 0, 0],
                            [0, 0, 1, 0, 0],
-                           [0, 1, 2, 1, 0],
-                           [0, 1, 1, 1, 3],
-                           [0, 0, 0, 0, 0]]])
+                           [0, 0, 1, 0, 0],
+                           [0, 0, 1, 0, 0],
+                           [0, 0, 1, 0, 0]],
+                          [[0, 0, 0, 0, 0],
+                           [0, 0, 0, 0, 0],
+                           [0, 0, 0, 0, 0],
+                           [0, 0, 0, 0, 3],
+                           [0, 0, 1, 1, 1]]])
 
     def __init__(self, length, width, height):
 
@@ -50,7 +50,7 @@ class MazeGen(QtWidgets.QWidget):
         self.dimension = (height, length, width)
         self.maze = self.generate_maze(length, width, height)
         self.current_position = self.get_start_position()
-        self.current_direction = 'West'
+        self.current_direction = 'North'
         self.update_visual()
         # self.show()  # Displays the GUI
 
@@ -152,7 +152,7 @@ class MazeGen(QtWidgets.QWidget):
             new_coord = np.add(rel_coord[relative_direction],
                                self.current_position)
 
-            check_lower_bound = all(coord > 0 for coord in new_coord)
+            check_lower_bound = all(coord >= 0 for coord in new_coord)
             check_upper_bound = all(new_coord < self.dimension)
 
             if check_lower_bound and check_upper_bound and self.maze[
@@ -222,8 +222,9 @@ class MazeGen(QtWidgets.QWidget):
             row = image_pos[relative_direction][0]
             col = image_pos[relative_direction][1]
 
-            check_lower_bound = all(coord > 0 for coord in new_coord)
+            check_lower_bound = all(coord >= 0 for coord in new_coord)
             check_upper_bound = all(new_coord < self.dimension)
+            # print(self.dimension, new_coord)
             if check_lower_bound and check_upper_bound and self.maze[
                     new_coord[0], new_coord[1], new_coord[2]] != 0:
                 self.image_grid[row][col].setPixmap(QPixmap(
@@ -255,4 +256,5 @@ def run_game():
     app.exec_()
 
 
-run_game()
+if __name__ == '__main__':
+    run_game()
