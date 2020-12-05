@@ -6,7 +6,10 @@ from PyQt5.QtGui import QPixmap
 from functools import partial
 
 
-class MazeGen(QtWidgets.QWidget):
+class MazeGame(QtWidgets.QWidget):
+    """
+
+    """
     # Define words as numbers for readability
 
     maze_dict = {'wall': 0, 'open': 1, 'start': 2, 'end': 3}
@@ -15,9 +18,9 @@ class MazeGen(QtWidgets.QWidget):
                       'East': ((0, -1, 0), (0, 0, 1), (0, 1, 0)),
                       'South': ((0, 0, 1), (0, 1, 0), (0, 0, -1)),
                       'West': ((0, 1, 0), (0, 0, -1), (0, -1, 0))}
-    temp_maze = np.array([[[2, 1, 1, 0, 0],
-                           [0, 0, 0, 0, 0],
-                           [0, 0, 0, 0, 0],
+    temp_maze = np.array([[[1, 1, 1, 0, 0],
+                           [1, 0, 0, 0, 0],
+                           [2, 0, 0, 0, 0],
                            [0, 0, 0, 0, 0],
                            [0, 0, 0, 0, 0]],
                           [[0, 0, 1, 0, 0],
@@ -34,35 +37,44 @@ class MazeGen(QtWidgets.QWidget):
     def __init__(self, length, width, height):
 
         # Set up GUI portion of the code
-        super(MazeGen, self).__init__()
-        uic.loadUi('maze_gui.ui', self)  # Adds widgets to class instance
-        self.buttons_dict = {}
-        self.image_grid = ()
-        self.image_strings = {}
+        super(MazeGame, self).__init__()
+        uic.loadUi('maze_gui.ui', self)  # Adds widgets to class instance.
+        self.buttons_dict = {}  # Dictionary of press-able buttons.
+        self.image_grid = ()  # 3x3 Tuple of references to image displays.
+        self.image_strings = {}  # Stores positions and file paths to images.
         self.setup_ui()  # Populates above data structures.
-        self.steps = 0
+        self.steps = 0  # Counter for number of player actions
 
-        # Connect GUI buttons to functions using signal/slot system
+        # Connect GUI buttons to functions using signal/slot system.
         for button in self.buttons_dict:
+            # Uses partial to pass a parameter to a slot function.
+            # Cannot pass a function parameter otherwise.
             button.clicked.connect(partial(self.update_position, button))
 
-        # Set up the game
+        # Set up the game and stores essential information.
         self.dimension = (height, length, width)
         self.maze = self.generate_maze(length, width, height)
-        self.current_position = self.get_start_position()
+        self.current_position = self.get_position('start')
+        self.end_position = self.get_position('end')
         self.current_direction = 'North'
         self.update_visual()
         # self.show()  # Displays the GUI
 
-    def get_start_position(self):
-        """Finds the starting position of the maze.
+    def get_position(self, find_cell):
+        """Finds the start/end position of the maze.
+
+        Parameters
+        ----------
+        find_cell : string
+            Key to self.maze_dict, used to find the start or end position of
+            the maze.
 
         Returns
         -------
         tuple
             The indexes of the start position in the 3D maze matrix.
         """
-        pos_tuple = np.where(self.maze == self.maze_dict['start'])
+        pos_tuple = np.where(self.maze == self.maze_dict[find_cell])
         return pos_tuple[0][0], pos_tuple[1][0], pos_tuple[2][0]
 
     def setup_ui(self):
@@ -139,39 +151,62 @@ class MazeGen(QtWidgets.QWidget):
             Connects the specified button to the function and does movement
             depending on the button.
         """
-
         def check_relative_position(relative_direction):
+            """Checks if direction is valid, if yes, update current position
+            to the new desired movement position.
+
+            Parameters
+            ----------
+            relative_direction : string
+                String for direction the movement
+            """
+            # Dictionary of relative coordinates depending on current direction
+
+            # Adds the backward direction, since it's relative to forward
+            rel_coord['backward'] = [-coord for coord in rel_coord['forward']]
+
+            # Adds current position to relative direction
+            new_coord = np.add(rel_coord[relative_direction],
+                               self.current_position)
+
+            # Checks if movement is within bounds of matrix
+            check_lower_bound = all(coord >= 0 for coord in new_coord)
+            check_upper_bound = all(new_coord < self.dimension)
+
+            # Checks bounds and not moving into a wall
+            if check_lower_bound and check_upper_bound and self.maze[
+                    new_coord[0], new_coord[1], new_coord[2]] != 0:
+                # updates new position
+                self.current_position = new_coord
+
+        # Pressed button is for changing direction
+        if self.buttons_dict[button] in ['turn_left', 'turn_right']:
+            # Get a list of cardinal directions in clockwise order
+            cardinal_directions = list(self.direction_dict.keys())
+            # Get index of the current direction
+            direction_index = cardinal_directions.index(self.current_direction)
+
+            # Shifts current direction by 1 index from the directions list
+            # depending which direction to turn.
+            if self.buttons_dict[button] == 'turn_left':
+                self.current_direction = cardinal_directions[
+                    direction_index - 1]
+            else:
+                # rotates temporary list
+                cardinal_directions.append(cardinal_directions.pop(0))
+                self.current_direction = cardinal_directions[direction_index]
+
+        # Pressed button is for movement
+        else:
             rel_coord = dict(
                 left=self.direction_dict[self.current_direction][0],
                 forward=self.direction_dict[self.current_direction][
                     1],
                 right=self.direction_dict[self.current_direction][2],
                 up=(1, 0, 0), down=(-1, 0, 0))
-
-            rel_coord['backward'] = [-coord for coord in rel_coord['forward']]
-            new_coord = np.add(rel_coord[relative_direction],
-                               self.current_position)
-
-            check_lower_bound = all(coord >= 0 for coord in new_coord)
-            check_upper_bound = all(new_coord < self.dimension)
-
-            if check_lower_bound and check_upper_bound and self.maze[
-                    new_coord[0], new_coord[1], new_coord[2]] != 0:
-                self.current_position = new_coord
-
-        if self.buttons_dict[button] in ['turn_left', 'turn_right']:
-            cardinal_directions = list(self.direction_dict.keys())
-            direction_index = cardinal_directions.index(self.current_direction)
-            if self.buttons_dict[button] == 'turn_left':
-                self.current_direction = cardinal_directions[
-                    direction_index - 1]
-            else:
-                cardinal_directions.append(cardinal_directions.pop(0))
-                self.current_direction = cardinal_directions[direction_index]
-
-        else:
             check_relative_position(self.buttons_dict[button])
 
+        # Updates visuals
         self.steps += 1
         self.update_visual()
 
@@ -184,7 +219,7 @@ class MazeGen(QtWidgets.QWidget):
         rel_coord
             It uses the current direction to determine what the matrix looks
             like in a first person view and stores it in a dictionary with
-            the relative directions as keys. Also it upates the players with
+            the relative directions as keys. Also it updates the players with
             some numbers/statistics.
 
         image_pos
@@ -224,33 +259,42 @@ class MazeGen(QtWidgets.QWidget):
 
             check_lower_bound = all(coord >= 0 for coord in new_coord)
             check_upper_bound = all(new_coord < self.dimension)
-            # print(self.dimension, new_coord)
+            # If not wall or out of bounds renders open image,
             if check_lower_bound and check_upper_bound and self.maze[
                     new_coord[0], new_coord[1], new_coord[2]] != 0:
                 self.image_grid[row][col].setPixmap(QPixmap(
                     self.image_strings[str(row) + str(col)][0]))
+            # Else show closed image
             else:
                 self.image_grid[row][col].setPixmap(QPixmap(
                     self.image_strings[str(row) + str(col)][1]))
 
+        # Updates direction for each of 5 changeable squares
         for direction in image_pos:
             update_directional_view(direction)
 
+        # Updates the text at the bottom
         self.label_steps.setText('Steps: ' + str(self.steps))
         self.label_coordinates.setText('(X,Y,Z):' + str(self.current_position))
         self.label_direction.setText('Direction: '
                                      + str(self.current_direction))
+        # Check win
+        # print(self.current_position, self.end_position)
+        if tuple(self.current_position) == self.end_position:
+            self.image_grid[1][1].setText("You Win!")
 
 
 def run_game():
     """Creates a version of the game object to start the ui, does a check to
     see if there's already an instance so it doesn't crash the Jupyter
-    Notebook kernel if a cell is rerun.
+    Notebook kernel if the cell is rerun.
     """
     app = QtCore.QCoreApplication.instance()
     if app is None:
         app = QtWidgets.QApplication(sys.argv)
-    window = MazeGen(5, 5, 3)
+    # Creates a new UI window using the MazeGame object
+    window = MazeGame(5, 5, 3)
+    # Makes window visible
     window.show()
     print(window.current_position)
     app.exec_()

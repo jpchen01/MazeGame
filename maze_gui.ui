@@ -265,11 +265,19 @@
            <height>200</height>
           </size>
          </property>
+         <property name="font">
+          <font>
+           <pointsize>30</pointsize>
+          </font>
+         </property>
          <property name="text">
           <string/>
          </property>
          <property name="pixmap">
           <pixmap>images/open2_2.jpg</pixmap>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
          </property>
         </widget>
        </item>
