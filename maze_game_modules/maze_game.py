@@ -1,9 +1,10 @@
-import os
 import sys
+from functools import partial
+
 import numpy as np
 from PyQt5 import QtWidgets, uic, QtCore
 from PyQt5.QtGui import QPixmap
-from functools import partial
+
 
 
 class MazeGame(QtWidgets.QWidget):
