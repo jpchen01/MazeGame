@@ -1,10 +1,10 @@
 import sys
+from os import path
 from functools import partial
 
 import numpy as np
 from PyQt5 import QtWidgets, uic, QtCore
 from PyQt5.QtGui import QPixmap
-
 
 
 class MazeGame(QtWidgets.QWidget):
@@ -39,7 +39,10 @@ class MazeGame(QtWidgets.QWidget):
 
         # Set up GUI portion of the code
         super(MazeGame, self).__init__()
-        uic.loadUi('maze_gui.ui', self)  # Adds widgets to class instance.
+        self.module_path = path.dirname('maze_game.py')
+        ui_rel_path = '../maze_gui.ui'
+        abs_ui_path = path.join(self.module_path, ui_rel_path)
+        uic.loadUi(abs_ui_path, self)  # Adds widgets to class instance.
         self.buttons_dict = {}  # Dictionary of press-able buttons.
         self.image_grid = ()  # 3x3 Tuple of references to image displays.
         self.image_strings = {}  # Stores positions and file paths to images.
@@ -103,16 +106,16 @@ class MazeGame(QtWidgets.QWidget):
                              self.button_turn_left: 'turn_left',
                              self.button_turn_right: 'turn_right'}
         # Strings for file paths to different images with matrix index as key.
-        self.image_strings = {'10': ('images/open2_1.jpg',
-                                     'images/square2_1.jpg'),
-                              '12': ('images/open2_3.jpg',
-                                     'images/square2_3.jpg'),
-                              '01': ('images/open1_2.jpg',
-                                     'images/square1_2.jpg'),
-                              '21': ('images/open3_2.jpg',
-                                     'images/square3_2.jpg'),
-                              '11': ('images/open2_2.jpg',
-                                     'images/square2_2.jpg')}
+        self.image_strings = {'10': ('../images/open2_1.jpg',
+                                     '../images/square2_1.jpg'),
+                              '12': ('../images/open2_3.jpg',
+                                     '../images/square2_3.jpg'),
+                              '01': ('../images/open1_2.jpg',
+                                     '../images/square1_2.jpg'),
+                              '21': ('../images/open3_2.jpg',
+                                     '../images/square3_2.jpg'),
+                              '11': ('../images/open2_2.jpg',
+                                     '../images/square2_2.jpg')}
 
         # Creates array of labels to display images
         self.image_grid = ((self.image_11, self.image_12, self.image_13),
@@ -263,8 +266,9 @@ class MazeGame(QtWidgets.QWidget):
             # If not wall or out of bounds renders open image,
             if check_lower_bound and check_upper_bound and self.maze[
                     new_coord[0], new_coord[1], new_coord[2]] != 0:
-                self.image_grid[row][col].setPixmap(QPixmap(
-                    self.image_strings[str(row) + str(col)][0]))
+                image_path = path.join(self.module_path, self.image_strings[
+                                       str(row) + str(col)][0])
+                self.image_grid[row][col].setPixmap(QPixmap(image_path))
             # Else show closed image
             else:
                 self.image_grid[row][col].setPixmap(QPixmap(
@@ -299,6 +303,7 @@ def run_game():
     window.show()
     print(window.current_position)
     app.exec_()
+    return window
 
 
 if __name__ == '__main__':

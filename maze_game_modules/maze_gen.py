@@ -1,6 +1,7 @@
 import numpy as np
 import random
 
+
 class MazeGen:
     size_dict = {
         'small': (1, 3, 3),
