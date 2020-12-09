@@ -145,9 +145,10 @@ class MazeGame(QtWidgets.QWidget):
 
     def update_position(self, button):
         """A socket for the buttons that runs whenever a button is pressed.
-        If the button is a turning one, just change the self.current_direction
-        variable. If the button is a directional movement button, then it will
-        attempt to move in that direction. Update visuals after it's complete.
+        If the button is a turning command, just change the
+        self.current_direction variable. If the button is a directional
+        movement button, then it will attempt to move in that direction.
+        Update visuals after it's complete.
 
         Parameters
         ----------
@@ -263,11 +264,13 @@ class MazeGame(QtWidgets.QWidget):
 
             check_lower_bound = all(coord >= 0 for coord in new_coord)
             check_upper_bound = all(new_coord < self.dimension)
+            not_wall = self.maze[new_coord[0], new_coord[1], new_coord[2]] != 0
             # If not wall or out of bounds renders open image,
-            if check_lower_bound and check_upper_bound and self.maze[
-                    new_coord[0], new_coord[1], new_coord[2]] != 0:
-                image_path = path.join(self.module_path, self.image_strings[
-                                       str(row) + str(col)][0])
+            if check_lower_bound and check_upper_bound and not_wall:
+
+                rel_image_path = self.image_strings[
+                                       str(row) + str(col)][0]
+                image_path = path.join(self.module_path, rel_image_path)
                 self.image_grid[row][col].setPixmap(QPixmap(image_path))
             # Else show closed image
             else:
@@ -287,6 +290,34 @@ class MazeGame(QtWidgets.QWidget):
         # print(self.current_position, self.end_position)
         if tuple(self.current_position) == self.end_position:
             self.image_grid[1][1].setText("You Win!")
+
+    def get_relative_positions(self):
+        """Returns a dictionary of the coordinates around the current position,
+        taking current direction into consideration.
+
+        Returns
+        -------
+        abs_coord : dict
+            Dictionary of the absolute directions around the current position.
+        """
+        # Uses direction to get relative directions
+        rel_coord = dict(left=self.direction_dict[self.current_direction][0],
+                         forward=self.direction_dict[self.current_direction][
+                                                     1],
+                         up=(1, 0, 0),
+                         down=(-1, 0, 0))
+
+        # Adds backward and right coordinate to dictionary by reversing known
+        # every relative coordinate from forward and left respectively
+        rel_coord['backward'] = [-coord for coord in rel_coord['forward']]
+        rel_coord['right'] = [-coord for coord in rel_coord['left']]
+
+        # Creates dictionary of absolute positions
+        abs_coord = {}
+        for keys in rel_coord.keys():
+            abs_coord[keys] = np.add(rel_coord[keys], self.current_position)
+
+        return abs_coord
 
 
 def run_game():
