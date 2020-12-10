@@ -83,5 +83,8 @@ def generate_maze(size):
     print(maze.board)
 
 
+
+
+
 if __name__ == '__main__':
     generate_maze('small')

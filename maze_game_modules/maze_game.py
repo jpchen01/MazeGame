@@ -1,10 +1,12 @@
 import sys
-from os import path
+import os
 from functools import partial
 
 import numpy as np
 from PyQt5 import QtWidgets, uic, QtCore
 from PyQt5.QtGui import QPixmap
+
+from maze_game_modules.mazes import maze_1
 
 
 class MazeGame(QtWidgets.QWidget):
@@ -26,7 +28,7 @@ class MazeGame(QtWidgets.QWidget):
 
     Methods
     -------
-    __init__(length, width, height)
+    __init__()
         Loads and imports all GUI elements as class instance objects, calls
         setup_ui function, connects the buttons to the update_position
         function.
@@ -80,32 +82,15 @@ class MazeGame(QtWidgets.QWidget):
     image_pos = dict(up=(0, 1), left=(1, 0), forward=(1, 1), right=(1, 2),
                      down=(2, 1))
 
-    # Temporary maze for testing
-    temp_maze = np.array([[[1, 1, 1, 0, 0],
-                           [1, 0, 0, 0, 0],
-                           [1, 0, 0, 0, 0],
-                           [0, 0, 0, 0, 0],
-                           [0, 0, 0, 0, 0]],
-                          [[0, 0, 1, 0, 0],
-                           [0, 0, 1, 0, 0],
-                           [0, 0, 1, 0, 0],
-                           [0, 0, 2, 0, 0],
-                           [0, 0, 1, 0, 0]],
-                          [[0, 0, 0, 0, 0],
-                           [0, 0, 0, 0, 0],
-                           [0, 0, 0, 0, 0],
-                           [0, 0, 1, 0, 3],
-                           [0, 0, 1, 1, 1]]])
-
-    def __init__(self, length, width, height):
+    def __init__(self):
         """Starts the game object, loads in the .ui file and and sets up
         """
 
         # Set up GUI portion of the code
         super(MazeGame, self).__init__()
-        self.module_path = path.dirname('maze_game.py')
+        self.module_path = os.path.dirname(__file__)
         ui_rel_path = '../maze_gui.ui'
-        abs_ui_path = path.join(self.module_path, ui_rel_path)
+        abs_ui_path = os.path.join(self.module_path, ui_rel_path)
         uic.loadUi(abs_ui_path, self)  # Adds ui and widgets to class instance.
 
         self.buttons_dict = {}  # Dictionary of press-able buttons.
@@ -122,11 +107,12 @@ class MazeGame(QtWidgets.QWidget):
             button.clicked.connect(partial(self.update_position, button))
 
         # Set up the game and stores essential information.
-        self.dimension = (height, length, width)
-        self.maze = self.generate_maze(length, width, height)
+
+        self.maze = self.generate_maze()
         self.current_position = self.get_position('start')
         self.end_position = self.get_position('end')
-        self.current_direction = 'South'
+        self.current_direction = 'North'
+        self.dimension = self.get_dimensions()
 
         self.update_visual()
 
@@ -188,7 +174,7 @@ class MazeGame(QtWidgets.QWidget):
                            (self.image_21, self.image_22, self.image_23),
                            (self.image_31, self.image_32, self.image_33))
 
-    def generate_maze(self, length, width, height):
+    def generate_maze(self):
         """Magically creates a maze, though I might not have time to finish,
         so it temporarily returns a hard coded one for testing.
 
@@ -207,7 +193,8 @@ class MazeGame(QtWidgets.QWidget):
             A 3D matrix representing the maze, refer to self.maze_dict for
             what each value represents
         """
-        return self.temp_maze
+        # return self.temp_maze
+        return maze_1
 
     def update_position(self, button):
         """A slot for the buttons that runs whenever a button is pressed.
@@ -286,7 +273,7 @@ class MazeGame(QtWidgets.QWidget):
                 rel_img_path = self.image_strings[str(row) + str(col)][1]
 
             # Joins the paths and updates desired square.
-            image_path = path.join(self.module_path, rel_img_path)
+            image_path = os.path.join(self.module_path, rel_img_path)
             self.image_grid[row][col].setPixmap(QPixmap(image_path))
 
         # Updates the text at the bottom
@@ -343,7 +330,9 @@ class MazeGame(QtWidgets.QWidget):
         # the program.
         try:
             check_lower_bound = all(coord_part >= 0 for coord_part in coord)
-            check_upper_bound = all(coord < self.dimension)
+            comp_zip = zip(coord, self.dimension)
+            check_upper_bound = all(coord_dim < dim for coord_dim, dim
+                                    in comp_zip)
             check_not_wall = self.maze[coord[0], coord[1], coord[2]] != 0
             return all([check_not_wall, check_upper_bound, check_lower_bound])
 
@@ -364,6 +353,15 @@ class MazeGame(QtWidgets.QWidget):
         if tuple(self.current_position) == self.end_position:
             self.image_grid[1][1].setText("You Win!")
 
+    def get_dimensions(self):
+        """Gets the dimensions of the maze
+        Returns
+        -------
+        tuple
+            The dimension of the given maze (height, length, width)
+        """
+        return self.maze.shape
+
 
 def run_game():
     """Creates a version of the game object to start the ui, does a check to
@@ -374,7 +372,7 @@ def run_game():
     if app is None:
         app = QtWidgets.QApplication(sys.argv)
     # Creates a new UI window using the MazeGame object
-    window = MazeGame(5, 5, 3)
+    window = MazeGame()
     window.show()
 
     # Starts event loop, so GUI runs until you exit it.

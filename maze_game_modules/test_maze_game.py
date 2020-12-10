@@ -45,12 +45,16 @@ def test_get_absolute_position():
 
 
 def test_update_position():
-    """Tests for maze_game.update_position function."""
-    game = get_maze_game_object()
+    """Tests for maze_game.update_position function, very broken."""
+    game = maze_game.MazeGame()
     game.maze = game.maze = np.zeros([5, 5, 5])
     game.current_position = (2, 2, 2)
     game.current_direction = 'North'
-    pass
+
+    button = game.button_forwards
+    game.update_position(button)
+    assert all(game.current_position == np.array([2, 1, 2]))
+    print('runs')
 
 
 def test_update_direction():
@@ -85,7 +89,7 @@ def get_maze_game_object():
     if app is None:
         app = QtWidgets.QApplication(sys.argv)
     # Creates a new UI window using the MazeGame object
-    window = maze_game.MazeGame(5, 5, 3)
+    window = maze_game.MazeGame()
 
     return window
 
@@ -93,3 +97,5 @@ def get_maze_game_object():
 if __name__ == '__main__':
     test_get_position()
     test_get_absolute_position()
+    test_update_direction()
+    # test_update_position()
