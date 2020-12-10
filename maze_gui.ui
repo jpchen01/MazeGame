@@ -348,20 +348,20 @@
        <item row="0" column="3">
         <widget class="QPushButton" name="button_turn_left">
          <property name="text">
-          <string>Turn Left (&lt;)</string>
+          <string>Turn Left (z)</string>
          </property>
          <property name="shortcut">
-          <string>Left</string>
+          <string>Z</string>
          </property>
         </widget>
        </item>
        <item row="1" column="3">
         <widget class="QPushButton" name="button_turn_right">
          <property name="text">
-          <string>Turn Right (&gt;)</string>
+          <string>Turn Right (c)</string>
          </property>
          <property name="shortcut">
-          <string>Ctrl+S</string>
+          <string>C</string>
          </property>
         </widget>
        </item>

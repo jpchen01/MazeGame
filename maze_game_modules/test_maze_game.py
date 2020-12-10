@@ -7,24 +7,54 @@ from maze_game_modules import maze_game
 
 
 def test_get_position():
-    """Tests for maze_game.get_position() function."""
+    """Tests for MazeGame.get_position() method."""
     # Sets up game object
-    game, app = get_maze_game_object()
-    # game = maze_game.run_game()
+    game = get_maze_game_object()
     game.maze = np.zeros([5, 5, 5])
 
-    # Seeing if function can find
+    # Seeing if function can find the assigned start position
     game.maze[1, 1, 1] = 2
     assert game.get_position('start') == (1, 1, 1)
+    # Sanity check to make sure not all inputs are valid
+    assert game.get_position('start') != (1, 2, 3)
+
+    # Seeing if function can find the assigned end position
     game.maze[4, 4, 4] = 3
     assert game.get_position('end') == (4, 4, 4)
-    print('runs')
-    sys.exit()
-    print('runs')
+    # Sanity to check to make sure not all inputs are valid
+    assert game.get_position('end') != (4, 2, 1)
+
+
+def test_get_absolute_position():
+    """Tests for MazeGame.get_absolute_position method"""
+    # Sets up current
+    game = get_maze_game_object()
+    game.maze = game.maze = np.zeros([5, 5, 5])
+    game.current_position = (2, 2, 2)
+    game.current_direction = 'North'
+
+    abs_pos_dict = game.get_absolute_positions()
+
+    # Verify all 6 directions behave as intended
+    assert all(abs_pos_dict['left'] == np.array([2, 2, 1]))
+    assert all(abs_pos_dict['up'] == np.array([3, 2, 2]))
+    assert all(abs_pos_dict['forward'] == np.array([2, 1, 2]))
+    assert all(abs_pos_dict['right'] == np.array([2, 2, 3]))
+    assert all(abs_pos_dict['down'] == np.array([1, 2, 2]))
+    assert all(abs_pos_dict['backward'] == np.array([2, 3, 2]))
 
 
 def test_update_position():
     """Tests for maze_game.update_position function."""
+    game = get_maze_game_object()
+    game.maze = game.maze = np.zeros([5, 5, 5])
+    game.current_position = (2, 2, 2)
+    game.current_direction = 'North'
+    pass
+
+
+def test_update_direction():
+    """Tests for maze_game.update_direction"""
     pass
 
 
@@ -56,9 +86,10 @@ def get_maze_game_object():
         app = QtWidgets.QApplication(sys.argv)
     # Creates a new UI window using the MazeGame object
     window = maze_game.MazeGame(5, 5, 3)
-    app.exec_()
-    return window, app
+
+    return window
 
 
 if __name__ == '__main__':
     test_get_position()
+    test_get_absolute_position()
