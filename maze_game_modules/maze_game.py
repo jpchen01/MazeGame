@@ -6,7 +6,7 @@ import numpy as np
 from PyQt5 import QtWidgets, uic, QtCore
 from PyQt5.QtGui import QPixmap
 
-from maze_game_modules.mazes import maze_1
+from maze_game_modules import mazes
 
 
 class MazeGame(QtWidgets.QWidget):
@@ -15,20 +15,20 @@ class MazeGame(QtWidgets.QWidget):
 
     Attributes
     ----------
-    maze_dict : dict
+    self.maze_dict : dict
         Dictionary that maps words to represent aspects of maze array
-    direction_dict : dict
+    self.direction_dict : dict
         Dictionary that holds the relative right and forwards coordinates of
         each cardinal direction.
-    image_pos : dict
+    self.image_pos : dict
         Dictionary that holds the row and column positions of images that need
         to be swapped out,
-    temp_maze : np.array
+    self.temp_maze : np.array
         Temporary maze to help me test.
 
     Methods
     -------
-    __init__()
+    __init__(maze_number)
         Loads and imports all GUI elements as class instance objects, calls
         setup_ui function, connects the buttons to the update_position
         function.
@@ -62,10 +62,10 @@ class MazeGame(QtWidgets.QWidget):
         Checks if input square is a position that the player can move to.
 
     update_label_text()
-        Prints some useful player information to screen.
+        Prints some useful player information to GUI.
 
     check_win()
-        Prints to screen that the player has won.
+        Prints to GUI that the player has won.
     """
 
     # Define words as numbers for readability
@@ -82,8 +82,12 @@ class MazeGame(QtWidgets.QWidget):
     image_pos = dict(up=(0, 1), left=(1, 0), forward=(1, 1), right=(1, 2),
                      down=(2, 1))
 
-    def __init__(self):
+    def __init__(self, maze_number=1):
         """Starts the game object, loads in the .ui file and and sets up
+
+        Parameters
+        ----------
+        maze_number
         """
 
         # Set up GUI portion of the code
@@ -108,7 +112,7 @@ class MazeGame(QtWidgets.QWidget):
 
         # Set up the game and stores essential information.
 
-        self.maze = self.generate_maze()
+        self.maze = self.generate_maze(maze_number)
         self.current_position = self.get_position('start')
         self.end_position = self.get_position('end')
         self.current_direction = 'North'
@@ -174,18 +178,14 @@ class MazeGame(QtWidgets.QWidget):
                            (self.image_21, self.image_22, self.image_23),
                            (self.image_31, self.image_32, self.image_33))
 
-    def generate_maze(self):
-        """Magically creates a maze, though I might not have time to finish,
-        so it temporarily returns a hard coded one for testing.
+    def generate_maze(self, maze_number):
+        """Magically creates a maze, temporarily returns a hard coded one for
+        testing and project deadline.
 
         Parameters
         ----------
-        length : int
-            Length of the maze
-        width : int
-            Width of the maze
-        height : int
-            Height of the maze
+        maze_number : int
+            Index value for one of the mazes from the maze module.
 
         Returns
         -------
@@ -193,8 +193,11 @@ class MazeGame(QtWidgets.QWidget):
             A 3D matrix representing the maze, refer to self.maze_dict for
             what each value represents
         """
-        # return self.temp_maze
-        return maze_1
+        # Makes sure input is valid, if not return a maze with default index.
+        if not maze_number < len(mazes.maze_tuple):
+            maze_number = 1
+
+        return mazes.maze_tuple[maze_number]
 
     def update_position(self, button):
         """A slot for the buttons that runs whenever a button is pressed.
@@ -247,6 +250,7 @@ class MazeGame(QtWidgets.QWidget):
         if self.buttons_dict[button] == 'turn_left':
             self.current_direction = cardinal_directions[
                 direction_index - 1]
+
         else:
             # rotates temporary list and use the same index
             cardinal_directions.append(cardinal_directions.pop(0))
@@ -266,7 +270,10 @@ class MazeGame(QtWidgets.QWidget):
             col = self.image_pos[direction][1]
 
             new_square = abs_coord[direction]
-            # Picks open or closed image path depending on is square is valid.
+
+            # Picks open or closed image path depending on is square is valid
+            # Index 0 of image strings gives relative path to 'open' image,
+            # while index 1 gives 'closed' image.
             if self.check_valid_square(new_square):
                 rel_img_path = self.image_strings[str(row) + str(col)][0]
             else:
@@ -279,7 +286,6 @@ class MazeGame(QtWidgets.QWidget):
         # Updates the text at the bottom
         self.update_labels_text()
 
-        # Check win
         self.check_win()
 
     def get_absolute_positions(self):
@@ -303,7 +309,9 @@ class MazeGame(QtWidgets.QWidget):
         rel_coord['backward'] = [-coord for coord in rel_coord['forward']]
         rel_coord['right'] = [-coord for coord in rel_coord['left']]
 
-        # Creates dictionary of absolute positions
+        # Creates dictionary of absolute positions by adding the relative
+        # coordinates to the current position. Values may be negative out of
+        # bounds of maze.
         abs_coord = {}
         for keys in rel_coord.keys():
             abs_coord[keys] = np.add(rel_coord[keys], self.current_position)
@@ -329,6 +337,7 @@ class MazeGame(QtWidgets.QWidget):
         # Using try, except to make sure indexing out of bounds doesn't crash
         # the program.
         try:
+            # Makes sure indexes > 0 and < dimensions.
             check_lower_bound = all(coord_part >= 0 for coord_part in coord)
             comp_zip = zip(coord, self.dimension)
             check_upper_bound = all(coord_dim < dim for coord_dim, dim
@@ -342,7 +351,7 @@ class MazeGame(QtWidgets.QWidget):
     def update_labels_text(self):
         """Shows the player important positional information."""
         self.label_steps.setText('Steps: ' + str(self.steps))
-        self.label_coordinates.setText('(X,Y,Z):' + str(self.current_position))
+        self.label_coordinates.setText('(Z, Y, X):' + str(self.current_position))
         self.label_direction.setText('Direction: '
                                      + str(self.current_direction))
 
@@ -363,7 +372,7 @@ class MazeGame(QtWidgets.QWidget):
         return self.maze.shape
 
 
-def run_game():
+def run_game(maze_number=0):
     """Creates a version of the game object to start the ui, does a check to
     see if there's already an instance so it doesn't crash the Jupyter
     Notebook kernel if the cell is rerun.
@@ -372,7 +381,7 @@ def run_game():
     if app is None:
         app = QtWidgets.QApplication(sys.argv)
     # Creates a new UI window using the MazeGame object
-    window = MazeGame()
+    window = MazeGame(maze_number)
     window.show()
 
     # Starts event loop, so GUI runs until you exit it.
