@@ -390,4 +390,4 @@ def run_game(maze_number=0):
 
 
 if __name__ == '__main__':
-    run_game()
+    run_game(4)
