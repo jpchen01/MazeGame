@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>Form</class>
- <widget class="QWidget" name="Form">
+ <class>MazeGame</class>
+ <widget class="QWidget" name="MazeGame">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -9,6 +9,18 @@
     <width>626</width>
     <height>738</height>
    </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>626</width>
+    <height>738</height>
+   </size>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>626</width>
+    <height>738</height>
+   </size>
   </property>
   <property name="windowTitle">
    <string>Form</string>
@@ -102,34 +114,6 @@
          </property>
          <property name="pixmap">
           <pixmap>images/square2_3.jpg</pixmap>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="2">
-        <widget class="QLabel" name="image_33">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="minimumSize">
-          <size>
-           <width>200</width>
-           <height>200</height>
-          </size>
-         </property>
-         <property name="maximumSize">
-          <size>
-           <width>200</width>
-           <height>200</height>
-          </size>
-         </property>
-         <property name="text">
-          <string/>
-         </property>
-         <property name="pixmap">
-          <pixmap>images/square3_3.jpg</pixmap>
          </property>
         </widget>
        </item>
@@ -277,7 +261,35 @@
           <pixmap>images/open2_2.jpg</pixmap>
          </property>
          <property name="alignment">
-          <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="2">
+        <widget class="QLabel" name="image_33">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>200</width>
+           <height>200</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>200</width>
+           <height>200</height>
+          </size>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="pixmap">
+          <pixmap>images/square3_3.jpg</pixmap>
          </property>
         </widget>
        </item>
@@ -423,6 +435,16 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>button_down</tabstop>
+  <tabstop>button_forwards</tabstop>
+  <tabstop>button_up</tabstop>
+  <tabstop>button_turn_left</tabstop>
+  <tabstop>button_left</tabstop>
+  <tabstop>button_backwards</tabstop>
+  <tabstop>button_right</tabstop>
+  <tabstop>button_turn_right</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

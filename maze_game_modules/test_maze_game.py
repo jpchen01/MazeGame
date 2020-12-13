@@ -108,6 +108,7 @@ def get_maze_game_object():
 
 
 if __name__ == '__main__':
+    # Quick self testing.
     test_get_position()
     test_get_absolute_position()
     test_check_valid_square()

@@ -102,7 +102,8 @@ class MazeGame(QtWidgets.QWidget):
         self.image_strings = {}  # Stores positions and file paths to images.
 
         self.setup_ui()  # Populates above data structures.
-        self.steps = 0  # Counter for number of player actions
+        self.steps = 0  # Counter for number of player actions.
+        self.setWindowTitle("Maze Game") # Gives the window a nice name.
 
         # Connect GUI buttons to functions using signal/slot system.
         for button in self.buttons_dict:
@@ -161,6 +162,7 @@ class MazeGame(QtWidgets.QWidget):
                              self.button_right: 'right',
                              self.button_turn_left: 'turn_left',
                              self.button_turn_right: 'turn_right'}
+
         # Strings for file paths to different images with matrix index as key.
         self.image_strings = {'10': ('../images/open2_1.jpg',
                                      '../images/square2_1.jpg'),
@@ -225,9 +227,9 @@ class MazeGame(QtWidgets.QWidget):
             square_to_move = abs_coord[self.buttons_dict[button]]
             if self.check_valid_square(square_to_move):
                 self.current_position = square_to_move
+                self.steps += 1
 
-        # Increments step count and updates
-        self.steps += 1
+        #
         self.update_visual()
 
     def update_direction(self, button):
@@ -351,7 +353,8 @@ class MazeGame(QtWidgets.QWidget):
     def update_labels_text(self):
         """Shows the player important positional information."""
         self.label_steps.setText('Steps: ' + str(self.steps))
-        self.label_coordinates.setText('(Z, Y, X):' + str(self.current_position))
+        self.label_coordinates.setText('(Z, Y, X):'
+                                       + str(self.current_position))
         self.label_direction.setText('Direction: '
                                      + str(self.current_direction))
 
@@ -372,7 +375,7 @@ class MazeGame(QtWidgets.QWidget):
         return self.maze.shape
 
 
-def run_game(maze_number=0):
+def run_game(maze_number=1):
     """Creates a version of the game object to start the ui, does a check to
     see if there's already an instance so it doesn't crash the Jupyter
     Notebook kernel if the cell is rerun.
@@ -390,4 +393,5 @@ def run_game(maze_number=0):
 
 
 if __name__ == '__main__':
-    run_game(4)
+    # Runs the default maze as a game.
+    run_game()
